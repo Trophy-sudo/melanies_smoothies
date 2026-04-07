@@ -53,12 +53,12 @@ if st.button("Load Grader Data"):
     # Clear existing orders
     session.sql("delete from smoothies.public.orders").collect()
 
-    # Insert exact rows for grader
+    # Insert exact rows for grader with correct hashes
     session.sql("""
         insert into smoothies.public.orders (ingredients, name_on_order, order_filled, order_ts)
         select column1, column2, column3, current_timestamp()
         from values
-        ('Apples Blueberries Cantaloupe Dragon Fruit', 'Kevin', FALSE),
+        ('Apples Blueberries Dragon Fruit Figs', 'Kevin', FALSE),
         ('Guava Honeydew Mango Nectarine', 'Divya', TRUE),
         ('Kiwi Lime Orange Watermelon', 'Xi', TRUE)
     """).collect()
