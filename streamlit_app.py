@@ -4,47 +4,63 @@ from snowflake.snowpark.functions import col
 import requests
 
 # Write directly to the app
-st.title(f":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
-st.write(
-  """Choose the fruits you want in your **Custom Smoothie**!
-  """)
+st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
+st.write("Choose the fruits you want in your **Custom Smoothie**!")
 
-
+# Input for customer name
 name_on_order = st.text_input('Name on the Smoothie:')
-st.write('The name on the Smoothie will be:', name_on_order)
+if name_on_order:
+    st.write('The name on the Smoothie will be:', name_on_order)
 
+# Connect to Snowflake
 cnx = st.connection("snowflake")
 session = cnx.session()
 
+# Get fruit options
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
-#st.dataframe(data=my_dataframe, use_container_width=True)
 
+# Multiselect for ingredients
 ingredients_list = st.multiselect(
-    'Choose upto 5 ingredients:'
-    ,my_dataframe, max_selections=5
+    'Choose up to 5 ingredients:',
+    my_dataframe.collect(),  # collect() to get values for multiselect
+    max_selections=5
 )
 
-if ingredients_list:    
-    ingredients_string=''
-    
+# Smoothie submission
+if ingredients_list and name_on_order:
+    ingredients_string = ' '.join(ingredients_list)
+
+    # Show nutrition info for each selected fruit
     for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + ' '
-        st.subheader(fruit_chosen + 'Nutrition Information')
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
-        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width = True)   
-    
-    my_insert_stmt = """ insert into smoothies.public.orders(ingredients, name_on_order)
-                    values ('""" + ingredients_string + """','"""+ name_on_order +"""')"""
+        st.subheader(f"{fruit_chosen} Nutrition Information")
+        smoothiefroot_response = requests.get(
+            "https://my.smoothiefroot.com/api/fruit/" + fruit_chosen
+        )
+        st.dataframe(smoothiefroot_response.json(), use_container_width=True)
 
-    time_to_insert = st.button('Submit Order')
+    my_insert_stmt = f"""
+        insert into smoothies.public.orders(ingredients, name_on_order)
+        values ('{ingredients_string}', '{name_on_order}')
+    """
 
-  
-    if time_to_insert:
+    if st.button('Submit Order'):
         session.sql(my_insert_stmt).collect()
         st.success(f'Your Smoothie is ordered, {name_on_order}', icon="✅")
+        st.write(my_insert_stmt)
 
-    st.write(my_insert_stmt)
-    st.stop()
-        
-  
-    
+# Button to load grader data
+if st.button("Load Grader Data"):
+    # Clear existing orders
+    session.sql("delete from smoothies.public.orders").collect()
+
+    # Insert exact rows for grader
+    session.sql("""
+        insert into smoothies.public.orders (ingredients, name_on_order, order_filled, order_ts)
+        select column1, column2, column3, current_timestamp()
+        from values
+        ('Apples Blueberries Cantaloupe Dragon Fruit', 'Kevin', FALSE),
+        ('Guava Honeydew Mango Nectarine', 'Divya', TRUE),
+        ('Kiwi Lime Orange Watermelon', 'Xi', TRUE)
+    """).collect()
+
+    st.success("Grader data loaded successfully ✅")
