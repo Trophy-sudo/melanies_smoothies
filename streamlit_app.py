@@ -27,8 +27,10 @@ ingredients_list = st.multiselect(
 )
 
 # Smoothie submission
-if ingredients_list and name_on_order:
-    ingredients_string = ' '.join(ingredients_list)
+if ingredients_list: 
+    ingredients_string='' 
+    for fruit_chosen in ingredients_list: 
+        ingredients_string += fruit_chosen + ' '
 
     # Show nutrition info for each selected fruit
     for fruit_chosen in ingredients_list:
@@ -47,19 +49,3 @@ if ingredients_list and name_on_order:
         session.sql(my_insert_stmt).collect()
         st.success(f'Your Smoothie is ordered, {name_on_order}', icon="✅")
         st.write(my_insert_stmt)
-
-if st.button("Load Grader Orders"):
-    # Clear previous orders first
-    session.sql("delete from smoothies.public.orders").collect()
-
-    # Insert the exact orders as per instructions
-    session.sql("""
-        insert into smoothies.public.orders (ingredients, name_on_order, order_filled, order_ts)
-        select column1, column2, column3, current_timestamp()
-        from values
-        ('Apple Lime Ximenia', 'Kevin', FALSE),
-        ('Dragon Fruit Guava Fig Jackfruit Blueberry', 'Divya', TRUE),
-        ('Vanilla Fruit Nectarine', 'Xi', TRUE)
-    """).collect()
-
-    st.success("Grader orders loaded successfully ✅")
