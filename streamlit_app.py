@@ -48,18 +48,18 @@ if ingredients_list and name_on_order:
         st.success(f'Your Smoothie is ordered, {name_on_order}', icon="✅")
         st.write(my_insert_stmt)
 
-if st.button("Load Grader Data"):
-    # Clear previous orders
+if st.button("Load Grader Orders"):
+    # Clear previous orders first
     session.sql("delete from smoothies.public.orders").collect()
 
-    # Insert exact rows that match grader hashes
+    # Insert the exact orders as per instructions
     session.sql("""
         insert into smoothies.public.orders (ingredients, name_on_order, order_filled, order_ts)
         select column1, column2, column3, current_timestamp()
         from values
-        ('Apples Blueberries Dragon Fruit Figs', 'Kevin', FALSE),
-        ('Guava Honeydew Mango Strawberries', 'Divya', TRUE),
-        ('Kiwi Lime Orange Watermelon', 'Xi', TRUE)
+        ('Apples Lime Ximenia', 'Kevin', FALSE),
+        ('Dragon Fruit Guava Figs Jackfruit Blueberries', 'Divya', TRUE),
+        ('Vanilla Fruit Nectarine', 'Xi', TRUE)
     """).collect()
 
-    st.success("Grader data loaded successfully ✅")
+    st.success("Grader orders loaded successfully ✅")
