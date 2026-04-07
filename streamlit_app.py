@@ -57,8 +57,8 @@ if st.button("Load Grader Orders"):
         insert into smoothies.public.orders (ingredients, name_on_order, order_filled, order_ts)
         select column1, column2, column3, current_timestamp()
         from values
-        ('Apples Lime Ximenia', 'Kevin', FALSE),
-        ('Dragon Fruit Guava Figs Jackfruit Blueberries', 'Divya', TRUE),
+        ('Apple Lime Ximenia', 'Kevin', FALSE),
+        ('Dragon Fruit Guava Fig Jackfruit Blueberry', 'Divya', TRUE),
         ('Vanilla Fruit Nectarine', 'Xi', TRUE)
     """).collect()
 
